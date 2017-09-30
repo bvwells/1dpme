@@ -1,7 +1,7 @@
 # 1dpme
 One dimension Porous Medium Equation (PME)
 
-## Developing locally.
+## Developing
 
 Developing locally requires Docker for Windows. Run the command
 
