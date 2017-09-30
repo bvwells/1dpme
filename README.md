@@ -1,4 +1,6 @@
 # 1dpme
+[![Build Status](https://travis-ci.org/bvwells/1dpme.svg?branch=master)](https://travis-ci.org/bvwells/1dpme)
+
 One dimension Porous Medium Equation (PME)
 
 ## Developing
