@@ -3,7 +3,10 @@
 ########################################
 
 # Add the source files
-SET(1DPME_src ${SRC}/main.f90)
+SET(1DPME_src ${SRC}/main.f90
+              ${SRC}/linear_solvers.f90
+              ${SRC}/special_functions.f90
+ )
 
 # Define the executable in terms of the source files
 ADD_EXECUTABLE(${1DPMEEXE} ${1DPME_src})
