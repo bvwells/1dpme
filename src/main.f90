@@ -30,16 +30,28 @@ program pme
   double precision :: output_t, delta_t, total_t, t_init
   double precision :: report_step, report_time
   double precision :: Q, m
-  real :: time1, time2
+
+  ! Computational timing variables
+  integer :: System_Time_Start,System_Time_Stop,System_Time_Rate
+  real :: CPU_Time_Start,CPU_Time_Stop
+  
   logical :: writesol
   character(LEN=10)::G
   parameter (G='(110F16.9)')
   !---------------------------------------------------------------------------------  
-  time1=0.0; time2=0.0
+
+  ! Print simulator banner.
+  write(6,*)
+  write(6,*) '---------------------------------------------------------------------'
+  write(6,*) '                      Porous Media Equation'
+  write(6,*) '---------------------------------------------------------------------'
+  write(6,*)
 
   ! Timing routine for calculation of time of numerical simulation.
 
-  call cpu_time(time1)
+   ! Start timing procedure
+  call system_clock(System_Time_Start,System_Time_Rate)
+  call cpu_time(CPU_Time_Start)
 
   ! Read variables into program.   
   open(unit=10,file='variables.data',status='old',form='formatted')
@@ -72,6 +84,15 @@ program pme
   write(20,G) u(:), total_t
   write(20,G) x(:), total_t
 
+  ! Write time-stepping banner
+  write(6,*)
+  write(6,*) 'Advancing solution to time ', output_t
+  write(6,*)
+  write(6,*) '---------------------------------------------------------------------'
+  write(6,*) '         Time                Time-step                               '
+  write(6,*) '---------------------------------------------------------------------'
+
+
   do while (total_t<output_t)                                 
 
      ! Calculate the time-step using an adaptive time-stepping routine
@@ -88,7 +109,9 @@ program pme
      endif
      
      total_t = total_t + delta_t 
-     print*,total_t, delta_t                        
+
+     ! Write out the current time and time-step size
+     write(6,'(2f20.8)') total_t, delta_t
 
      ! Mass monitor
      call mass_mesh_velocity(u,x,x_dot,nodes,delta_t,m)
@@ -105,9 +128,20 @@ program pme
 
   close(20)
 
-  call cpu_time(time2)
+  ! Stop the timing
+  call system_clock(System_Time_Stop)
+  call cpu_time(CPU_Time_Stop)
 
-  print*,'Computational time is ',time2-time1     
+  write(*,'(/)')
+  write(*,'(1x,a)') 'Timing report:'
+  write(6,*) '---------------------------------------------------------------------'
+  write(*,'(1x,a)') '    Elapsed Time   CPU Time',&
+                    '        (s)           (s)'
+  write(6,*) '---------------------------------------------------------------------'
+  write(*,'(1x,2e15.4)') dble(System_Time_Stop-System_Time_Start)/dble(System_Time_Rate)&
+                       &,CPU_Time_Stop-CPU_Time_Start
+  write(6,*) '---------------------------------------------------------------------'
+  write(*,'(/)')
 
 end program pme
 
