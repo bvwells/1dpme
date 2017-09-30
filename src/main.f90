@@ -1,7 +1,7 @@
-program 1dpme
+program pme
 
   implicit none
   
   print *, "Hello World!"
   
-end program 1dpme
+end program pme
