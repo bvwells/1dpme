@@ -16,7 +16,8 @@ to build the docker image which pulls the gcc base image containing gfortran and
 Then run image with the command:
 
 ```
-docker run -i -t -v /f/git/src/github.com/bvwells/1dpme:/app 1dpme```
+docker run -i -t -v /f/git/src/github.com/bvwells/1dpme:/app 1dpme
+```
 
 This command maps the local workspace into the running image so any changes made in the running image will be reflected on the local workspace.
 
