@@ -52,7 +52,7 @@ program pme
   close(10)
 
   ! Allocate arrays.
-  allocate(u(-nodes:nodes),x(-nodes:nodes),x_dot(-nodes:nodes),theta(-nodes:nodes))
+  allocate(u(0:nodes),x(0:nodes),x_dot(0:nodes),theta(0:nodes))
   u=0.0d0; x=0.0d0; x_dot=0.0d0; theta=0.0d0
 
   ! Setup the initial conditions for the simulation
@@ -118,15 +118,15 @@ subroutine initial_conditions(u,x,nodes,m,Q,t_init)
   implicit none
   !---------------------------------------------------------------------------------
   integer, intent(IN) :: nodes
-  double precision, intent(INOUT), dimension(-nodes:nodes) :: u, x
+  double precision, intent(INOUT), dimension(0:nodes) :: u, x
   double precision, intent(IN) :: Q, t_init, m
   !---------------------------------------------------------------------------------  
-  double precision :: rzero, tzero, gamman, gammad, pi, lambda, delta_x
+  double precision :: rzero, tzero, gamman, gammad, pi, lambda, delta_x, r
   double precision :: one_over_m, one_over_lambda
   integer :: i
   !---------------------------------------------------------------------------------
   rzero=0; tzero=0; gamman=0; gammad=0; lambda=0
-  u=0; x=0; pi=dacos(-1.0d0); delta_x=0
+  u=0; x=0; pi=dacos(-1.0d0); delta_x=0; r=0.0
 
   one_over_m = 1.0d0/m
 
@@ -138,14 +138,14 @@ subroutine initial_conditions(u,x,nodes,m,Q,t_init)
   tzero = ((rzero**2)*m)/(2.0d0*(m+2.0d0))
   lambda = (t_init/tzero)**(1.0d0/(m+2.0d0))
 
-  delta_x = rzero*lambda/nodes
-
+  r = rzero*lambda
   one_over_lambda = 1.0d0/lambda
+  delta_x = 2.0d0 * r/nodes
 
   ! Use equispaced mesh
-  do i=-nodes, nodes
-     x(i) = delta_x*i
-     u(i) = one_over_lambda*(dabs(1.0d0 - ((x(i)/(rzero*lambda))**2)))**one_over_m
+  do i=0, nodes
+     x(i) = -r + delta_x*i
+     u(i) = one_over_lambda*(dabs(1.0d0 - ((x(i)/r)**2)))**one_over_m
   end do
 
   return
@@ -157,17 +157,17 @@ subroutine theta_setup(theta,nodes,x,u)
   implicit none
   !------------------------------------------------------------------------------   
   integer, intent(IN) :: nodes
-  double precision, intent(INOUT), dimension(-nodes:nodes) :: theta
-  double precision, intent(IN), dimension(-nodes:nodes) :: u, x
+  double precision, intent(INOUT), dimension(0:nodes) :: theta
+  double precision, intent(IN), dimension(0:nodes) :: u, x
   !------------------------------------------------------------------------------
   integer :: i
   !------------------------------------------------------------------------------   
 
   ! Calculate theta for mass monitor
-  theta(-nodes) = (1.0d0/3.0d0)*(x(-nodes+1)-x(-nodes)) * u(-nodes) + &
-                  (1.0d0/6.0d0)*(x(-nodes+1)-x(-nodes)) * u(-nodes+1)
+  theta(0) = (1.0d0/3.0d0)*(x(1)-x(0)) * u(0) + &
+             (1.0d0/6.0d0)*(x(1)-x(0)) * u(1)
 
-  do i=-nodes+1, nodes-1
+  do i=1, nodes-1
      theta(i) = (1.0d0/6.0d0)*(x(i)-x(i-1))   * u(i-1) + &
                 (1.0d0/3.0d0)*(x(i+1)-x(i-1)) * u(i)   + &
                 (1.0d0/6.0d0)*(x(i+1)-x(i))   * u(i+1)
@@ -192,21 +192,21 @@ subroutine mass_mesh_velocity(u,x,x_dot,nodes,delta_t,m)
   implicit none
   !---------------------------------------------------------------------------------
   integer, intent(IN) :: nodes
-  double precision, intent(INOUT), dimension(-nodes:nodes) :: u, x, x_dot
+  double precision, intent(INOUT), dimension(0:nodes) :: u, x, x_dot
   double precision, intent(IN) :: delta_t, m         
   !---------------------------------------------------------------------------------
-  double precision, dimension(-nodes:nodes,-nodes:nodes) :: K
-  double precision, dimension(-nodes:nodes) :: psi, E
+  double precision, dimension(0:nodes,0:nodes) :: K
+  double precision, dimension(0:nodes) :: psi, E
   integer :: i
   !--------------------------------------------------------------------------------
   x_dot=0.0d0; K=0.0d0; E=0.0d0; psi=0.0d0; 
 
   ! setup stiffness matrix and load vector
-  K(-nodes,-nodes) = - 0.5d0*((u(-nodes+1)+u(-nodes))/(x(-nodes+1)-x(-nodes))) 
-  K(-nodes+1,-nodes) =  0.5d0*((u(-nodes+1)+u(-nodes))/(x(-nodes+1)-x(-nodes)))
-  E(-nodes) =  -(1.0d0/(m+1.0d0))*(1.0d0/(x(-nodes+1)-x(-nodes)))*(u(-nodes+1)**(m+1) - u(-nodes)**(m+1))
+  K(0,0) = - 0.5d0*((u(1)+u(0))/(x(1)-x(0))) 
+  K(1,0) =  0.5d0*((u(1)+u(0))/(x(1)-x(0)))
+  E(0) =  -(1.0d0/(m+1.0d0))*(1.0d0/(x(1)-x(0)))*(u(1)**(m+1) - u(0)**(m+1))
 
-  do i=-nodes+1, nodes-1 
+  do i=1, nodes-1 
      K(i-1,i)=0.5d0*((u(i)+u(i-1))/(x(i)-x(i-1)))
      K(i,i)=-0.5d0*((u(i)+u(i-1))/(x(i)-x(i-1))) - 0.5d0*((u(i+1)+u(i))/(x(i+1)-x(i)))
      K(i+1,i) = 0.5d0*((u(i+1)+u(i))/(x(i+1)-x(i)))
@@ -219,8 +219,8 @@ subroutine mass_mesh_velocity(u,x,x_dot,nodes,delta_t,m)
   E(nodes) = (1.0d0/(m+1.0d0))*(1.0d0/(x(nodes)-x(nodes-1)))*(u(nodes)**(m+1) - u(nodes-1)**(m+1))
 
   ! Solve stiffess system for \Psi imposing dirichlet boundary conditions strongly (\Psi=0).    
-  call gaussian_elimination(K(-nodes+1:nodes-1,-nodes+1:nodes-1),psi(-nodes+1:nodes-1),E(-nodes+1:nodes-1),2*nodes-1)
-  psi(-nodes)=0.0d0; psi(nodes)=0.0d0
+  call gaussian_elimination(K(1:nodes-1,1:nodes-1),psi(1:nodes-1),E(1:nodes-1),nodes-1)
+  psi(0)=0.0d0; psi(nodes)=0.0d0
 
   ! Recover the mesh velocity from psi
   call velocity_recovery(x,x_dot,psi,nodes)
@@ -238,21 +238,21 @@ subroutine velocity_recovery(x,x_dot,psi,nodes)
   implicit none
   !---------------------------------------------------------------------------------
   integer, intent(IN) :: nodes
-  double precision, intent(INOUT), dimension(-nodes:nodes) :: x_dot
-  double precision, intent(IN), dimension(-nodes:nodes) :: x, psi
+  double precision, intent(INOUT), dimension(0:nodes) :: x_dot
+  double precision, intent(IN), dimension(0:nodes) :: x, psi
   !---------------------------------------------------------------------------------
-  double precision, dimension(-nodes:nodes,-nodes:nodes) :: Mass
-  double precision, dimension(-nodes:nodes) :: f
+  double precision, dimension(0:nodes,0:nodes) :: Mass
+  double precision, dimension(0:nodes) :: f
   integer :: i
   !--------------------------------------------------------------------------------
   Mass=0.0d0; f=0.0d0; x_dot=0.0d0
 
   ! setup mass matrix and load vector for recovery of mesh velocity
-  Mass(-nodes,-nodes) = (1.0d0/3.0d0)*(x(-nodes+1)-x(-nodes))
-  Mass(-nodes+1,-nodes) = (1.0d0/6.0d0)*(x(-nodes+1)-x(-nodes))
-  f(-nodes) = 0.5d0*(psi(-nodes+1)-psi(-nodes))
+  Mass(0,0) = (1.0d0/3.0d0)*(x(1)-x(0))
+  Mass(1,0) = (1.0d0/6.0d0)*(x(1)-x(0))
+  f(0) = 0.5d0*(psi(1)-psi(0))
 
-  do i=-nodes+1, nodes-1
+  do i=1, nodes-1
      Mass(i-1,i) = (1.0d0/6.0d0)*(x(i)-x(i-1))
      Mass(i,i) = (1.0d0/3.0d0)*(x(i+1)-x(i-1))
      Mass(i+1,i) = (1.0d0/6.0d0)*(x(i+1)-x(i))
@@ -264,7 +264,7 @@ subroutine velocity_recovery(x,x_dot,psi,nodes)
   f(nodes) = 0.5d0*(psi(nodes)-psi(nodes-1))
 
   ! Solve for mesh velocity
-  call gaussian_elimination(Mass,x_dot,f,2*nodes+1)
+  call gaussian_elimination(Mass,x_dot,f,nodes+1)
 
   return
 
@@ -282,19 +282,19 @@ subroutine mass_u_calc(u,x,nodes,theta)
   implicit none
   !---------------------------------------------------------------------------------
   integer, intent(IN) :: nodes
-  double precision, intent(INOUT), dimension(-nodes:nodes) :: u
-  double precision, intent(IN), dimension(-nodes:nodes) :: x, theta
+  double precision, intent(INOUT), dimension(0:nodes) :: u
+  double precision, intent(IN), dimension(0:nodes) :: x, theta
   !---------------------------------------------------------------------------------
-  double precision, dimension(-nodes:nodes,-nodes:nodes) :: M
+  double precision, dimension(0:nodes,0:nodes) :: M
   integer :: i
   !---------------------------------------------------------------------------------
   u=0.0d0; M=0.0d0
 
   ! Setup mass matrix system to recover solution using mass monitor     
-  M(-nodes,-nodes) = (1.0d0/3.0d0)*(x(-nodes+1)-x(-nodes))
-  M(-nodes+1,-nodes) = (1.0d0/6.0d0)*(x(-nodes+1)-x(-nodes))
+  M(0,0) = (1.0d0/3.0d0)*(x(1)-x(0))
+  M(1,0) = (1.0d0/6.0d0)*(x(1)-x(0))
 
-  do i=-nodes+1, nodes-1
+  do i=1, nodes-1
      M(i-1,i) = (1.0d0/6.0d0)*(x(i)-x(i-1))
      M(i,i) = (1.0d0/3.0d0)*(x(i+1)-x(i-1))
      M(i+1,i) = (1.0d0/6.0d0)*(x(i+1)-x(i))
@@ -304,8 +304,8 @@ subroutine mass_u_calc(u,x,nodes,theta)
   M(nodes,nodes) = (1.0d0/3.0d0)*(x(nodes)-x(nodes-1))                    
 
   ! Solve for solution u 
-  call gaussian_elimination(M(-nodes+1:nodes-1,-nodes+1:nodes-1),u(-nodes+1:nodes-1),theta(-nodes+1:nodes-1),2*nodes-1)
-  u(-nodes)=0; u(nodes)=0
+  call gaussian_elimination(M(1:nodes-1,1:nodes-1),u(1:nodes-1),theta(1:nodes-1),nodes-1)
+  u(0)=0; u(nodes)=0
 
   return
 
@@ -316,7 +316,7 @@ subroutine adaptive_timestep(u,x,m,delta_t,t,nodes)
   implicit none
   !------------------------------------------------------------------------------        
   integer, intent(IN) :: nodes
-  double precision, intent(IN), dimension(-nodes:nodes) :: u, x
+  double precision, intent(IN), dimension(0:nodes) :: u, x
   double precision, intent(IN) :: t, m                 
   double precision, intent(INOUT) :: delta_t
   !------------------------------------------------------------------------------        
