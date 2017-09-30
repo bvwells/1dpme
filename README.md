@@ -17,3 +17,16 @@ Then run image with the command:
 docker run -i -t 1dpme
 ```
 
+Generate the make files by running the command:
+
+```
+cmake .
+```
+
+Build the executable by running the command:
+
+```
+make
+```
+
+
