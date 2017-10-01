@@ -2,6 +2,9 @@
 # Set up how to compile the source files
 ########################################
 
+# Define the executable name
+SET(1DPMEEXE 1dpme.exe)
+
 # Add the source files
 SET(1DPME_Sources ${SRC}/main.f90
                   ${SRC}/linear_solvers.f90

@@ -40,9 +40,6 @@ else (Fortran_COMPILER_NAME MATCHES "gfortran.*")
   set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g")
 endif (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
-# Define the executable name
-SET(1DPMEEXE 1dpme.exe)
-
 # Define some directories
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
 
