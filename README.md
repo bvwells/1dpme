@@ -17,7 +17,7 @@ u_t = (u^m u_x)_x
 and admits self-similar solutions of the form
 
 ```
-u(x,t) = (1/λ)*(1-(x/(r0*λ))^2)^(1/m)
+u(x,t) = (1/lambda)*(1-(x/(r0*lambda))^2)^(1/m)
 ```
 
 where
@@ -25,7 +25,7 @@ where
 ```
 r0 = Q*gamma(1/m + 3/2)/(SQRT(pi)*gamma(1/m + 1))                   
 t0 = ((r0^2)*m)/(2*(m+2))                            
-λ = (t/t0)^(1/(m+2)) 
+lambda = (t/t0)^(1/(m+2)) 
 ```
 
 Here ```Q``` is the total mass of the solution ```gamma``` is the gamma function.
