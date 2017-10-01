@@ -3,7 +3,11 @@ module special_functions
 contains
 
   double precision function gamma(xx)
-
+  !*********************************************************************************
+  !**                                                                             **
+  !**  This function calculates the gamma funtion for the value xx.               **
+  !**                                                                             **
+  !*********************************************************************************
     implicit none
     !---------------------------------------------------------------------------------      
     double precision, intent(IN) :: xx
@@ -28,8 +32,8 @@ contains
     ser=1.000000000190015d0
 
     do j=1, 6
-       y=y+1.0d0
-       ser =ser +cof(j)/y
+       y =y+1.0d0
+       ser = ser +cof(j)/y
     end do
 
     gamma= tmp + dlog(stp*ser/x)

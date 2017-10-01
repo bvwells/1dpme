@@ -2,14 +2,25 @@ module linear_solvers
 
 contains
 
-  subroutine tridiagonal(upper,diag,lower,x,B,idim)
-
+  subroutine tridiagonal(upper,diag,lower,x,b,n)
+  !*********************************************************************************
+  !**                                                                             **
+  !**  This function solves a tridiagonal linear system where:                    **
+  !**                                                                             **
+  !**   upper - upper diagonal entries of matrix.                                 **
+  !**   diag  -       diagonal entries of matrix.                                 **
+  !**   lower - lower diagonal entries of matrix.                                 **
+  !**   x     - solution vector.                                                  **
+  !**   b     - right hand side of linear system.                                 **
+  !**   n     - size of linear system.                                            **
+  !**                                                                             **
+  !*********************************************************************************
     implicit none
     !---------------------------------------------------------------------------------
-    integer, intent(IN) :: idim
-    double precision, dimension(1:idim) :: upper, diag, lower, B, X
+    integer, intent(IN) :: n
+    double precision, dimension(1:n) :: upper, diag, lower, b, X
     !---------------------------------------------------------------------------------
-    double precision, dimension(1:idim) :: gamma
+    double precision, dimension(1:n) :: gamma
     double precision :: beta
     integer :: i
     !---------------------------------------------------------------------------------      
@@ -18,22 +29,22 @@ contains
     if (dabs(diag(1))<1d-10) stop 'Rewrite equations: trisolve'
 
     beta = diag(1)
-    x(1) = B(1)/beta
+    x(1) = b(1)/beta
 
     ! Forward substitution
 
-    do i = 1, idim
+    do i = 1, n
        gamma(i) = upper(i-1) / beta
        beta = diag(i) - lower(i)*gamma(i)
 
        if (dabs(beta)<1d-10) stop 'trisolve failed'
 
-       x(i) = ( B(i) - lower(i)*x(i-1) ) / beta
+       x(i) = ( b(i) - lower(i)*x(i-1) ) / beta
     end do
 
     ! Backward substitution
 
-    do i = idim-1, 1, -1
+    do i = n-1, 1, -1
        x(i) = x(i) - gamma(i+1)*x(i+1)
     end do
 
@@ -41,75 +52,84 @@ contains
 
   end subroutine tridiagonal
 
-  subroutine gaussian_elimination(mat,xsol,B,idim)
-
+  subroutine gaussian_elimination(a,x,b,n)
+  !*********************************************************************************
+  !**                                                                             **
+  !**  This function solves a linear system of the form ax-b by Gaussian          **
+  !**  elimination. Here:                                                         **
+  !**   a     - lower diagonal entries of matrix.                                 **
+  !**   x     - solution vector.                                                  **
+  !**   b     - right hand side of linear system.                                 **
+  !**   n     - size of linear system.                                            **
+  !**                                                                             **
+  !*********************************************************************************
     implicit none
     !---------------------------------------------------------------------------------
-    integer, intent(IN) :: idim
-    double precision, intent(IN), dimension(1:idim,1:idim) :: mat
-    double precision, intent(INOUT), dimension(1:idim) :: xsol
-    double precision, intent(IN), dimension(1:idim) :: B
+    integer, intent(IN) :: n
+    double precision, intent(IN), dimension(1:n,1:n) :: a
+    double precision, intent(INOUT), dimension(1:n) :: x
+    double precision, intent(IN), dimension(1:n) :: b
     !---------------------------------------------------------------------------------      
-    double precision, dimension(1:idim,1:idim+1) :: a
+    double precision, dimension(1:n,1:n+1) :: aug
     double precision :: pmax, aux
-    integer :: i, j, k, idim1, ll
+    integer :: i, j, k, n1, ll
     !---------------------------------------------------------------------------------
 
-    idim1= idim +1
+    n1= n +1
 
-    a=0.0d0
+    aug=0.0d0
 
-    do i=1,idim
-       do j=1,idim1
-          a(i,j)=mat(i,j)
+    do i=1,n
+       do j=1,n
+          aug(i,j)=a(i,j)
        end do
     end do
 
-    a(:,idim1) = B(:)
+    aug(:,n1) = b(:)
 
-    do i=1,idim-1
+    do i=1,n-1
        pmax = 0.0
 
-       do j=i,idim
-          if(abs(a(j,i)).gt.pmax) then
-             pmax = abs(a(j,i))
+       do j=i,n
+          if(abs(aug(j,i)).gt.pmax) then
+             pmax = abs(aug(j,i))
              ll = j
           endif
        enddo
 
        if (ll.ne.i) then
-          do j=i,idim1
-             aux = a(i,j)
-             a(i,j) = a(ll,j)
-             a(ll,j) = aux
+          do j=i,n1
+             aux = aug(i,j)
+             aug(i,j) = aug(ll,j)
+             aug(ll,j) = aux
           enddo
        endif
 
-       aux = a(i,i)
+       aux = aug(i,i)
 
-       do j =i+1,idim1
-          a(i,j) = a(i,j)/aux
+       do j =i+1,n1
+          aug(i,j) = aug(i,j)/aux
        end do
 
-       do k=i+1,idim
-          aux = a(k,i)
+       do k=i+1,n
+          aux = aug(k,i)
 
-          do j=i+1,idim1
-             a(k,j)=a(k,j) - aux*a(i,j)
+          do j=i+1,n1
+             aug(k,j)=aug(k,j) - aux*aug(i,j)
           end do
        end do
 
     end do
 
-    a(idim,idim1) = a(idim,idim1)/a(idim,idim)
+    aug(n,n1) = aug(n,n1)/aug(n,n)
 
-    do i=idim-1,1,-1
-       do j=i+1,idim
-          a(i,idim1) = a(i,idim1) - a(i,j)*a(j,idim1)
+    do i=n-1,1,-1
+       do j=i+1,n
+          aug(i,n1) = aug(i,n1) - aug(i,j)*aug(j,n1)
        enddo
     enddo
 
-    xsol = a(:,idim1)    
+    x = aug(:,n1)    
 
     return  
 

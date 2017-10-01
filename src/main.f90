@@ -13,8 +13,6 @@ program pme
   !**             x_dot (mesh velocity) - Double precision array                  **
   !**                                                                             **                      
   !**             nodes - number of nodes in mesh. Integer                        **
-  !**             x_min - Start value of x domain. Double precision               **
-  !**             x_max - End value of x domain. Double precision                 **
   !**             m - power in equation. Double precision                         **
   !**             output_t - Time of solution output. Double precision            **
   !**                                                                             **
@@ -148,7 +146,21 @@ end program pme
 subroutine initial_conditions(u,x,nodes,m,Q,t_init)
 
   use special_functions
-
+  !*********************************************************************************
+  !**                                                                             **
+  !**  This function generates a equally spaced mesh to solve the porous medium   **
+  !**  equation on. The solution is initialised to the self-similar solution      **
+  !**  given by:                                                                  **
+  !**                                                                             **
+  !**       u(x,t) = (1/lambda)*(1-(x/(rzero*lambda)))^(1/m)                      **
+  !**                                                                             **
+  !**  where                                                                      **
+  !**                                                                             **
+  !**     rzero = Q*gamma(1/m + 3/2)/(SQRT(pi)*gamma(1/m + 1))                    **
+  !**     tzero = ((rzero^2)*m)/(2*(m+2))                                         **
+  !**     lambda = (tinit/tzero)^(1/(m+2))                                        **
+  !**                                                                             **
+  !*********************************************************************************
   implicit none
   !---------------------------------------------------------------------------------
   integer, intent(IN) :: nodes
