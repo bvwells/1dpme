@@ -16,7 +16,7 @@ u_t = (u^m u_x)_x
 
 and admits self-similar solutions of the form
 
-'''
+```
 u(x,t) = (1/λ)*(1-(x/(rzero*λ)))^(1/m)
 ```
 
