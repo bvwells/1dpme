@@ -25,11 +25,10 @@ where
 ```
 r0 = Q*gamma(1/m + 3/2)/(SQRT(pi)*gamma(1/m + 1))                   
 t0 = ((r0^2)*m)/(2*(m+2))                            
-λ = (tinit/t0)^(1/(m+2)) 
+λ = (t/t0)^(1/(m+2)) 
 ```
 
-Here ```Q``` is the total mass of the solution ```gamma``` is the gamma function and
-```tinit``` is the initial time of the solution.
+Here ```Q``` is the total mass of the solution ```gamma``` is the gamma function.
 
 ## Developing
 
