@@ -40,7 +40,7 @@ is obtained as a reconstruction step by considering conservation of
 the monitor function. All the moving mesh equations are solved using
 linear finite elements.
 
-## Developing
+## Building and Developing
 
 Developing locally requires Docker for Windows. Run the command
 
@@ -69,5 +69,15 @@ Build the executable by running the command:
 ```
 make
 ```
+
+## Running
+
+The program takes the file [variables.data](./variables.data) as input to the simulation. The program can be run from the base of the repo with the command:
+
+```
+./bin/1dpme.exe
+```
+
+The program outputs the mesh and solution over time into the file ```solution.out```.
 
 [1]: http://www.reading.ac.uk/nmsruntime/saveasdialog.aspx?lID=24080&sID=90294
