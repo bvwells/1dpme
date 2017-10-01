@@ -1,12 +1,24 @@
 # 1dpme
 [![Build Status](https://travis-ci.org/bvwells/1dpme.svg?branch=master)](https://travis-ci.org/bvwells/1dpme)
 
-One dimension Porous Medium Equation (PME) solved by a moving mesh approach
-described in the PhD thesis
+One dimensional Porous Medium Equation (PME) solved by a moving mesh approach
+described in the PhD thesis,
 
 *A moving mesh finite element method for the numerical solution of partial differential equations and systems.*
 
 which can be found [here][1].
+
+The Porous Medium Equation is described by the non-linear partial differential equation
+
+```
+u_t = (u^m u_x)_x
+```
+
+and admits self-similar solutions of the form
+
+'''
+u(x,t) = (1/λ)*(1-(x/(rzero*λ)))^(1/m)
+```
 
 ## Developing
 
