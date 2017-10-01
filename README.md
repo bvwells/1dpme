@@ -1,7 +1,12 @@
 # 1dpme
 [![Build Status](https://travis-ci.org/bvwells/1dpme.svg?branch=master)](https://travis-ci.org/bvwells/1dpme)
 
-One dimension Porous Medium Equation (PME)
+One dimension Porous Medium Equation (PME) solved by a moving mesh approach
+described in the PhD thesis
+
+*A moving mesh finite element method for the numerical solution of partial differential equations and systems.*
+
+which can be found [here][1].
 
 ## Developing
 
@@ -33,4 +38,4 @@ Build the executable by running the command:
 make
 ```
 
-
+[1]: http://www.reading.ac.uk/nmsruntime/saveasdialog.aspx?lID=24080&sID=90294
