@@ -20,6 +20,17 @@ and admits self-similar solutions of the form
 u(x,t) = (1/λ)*(1-(x/(r0*λ))^2)^(1/m)
 ```
 
+where
+
+```
+r0 = Q*gamma(1/m + 3/2)/(SQRT(pi)*gamma(1/m + 1))                    **
+t0 = ((r0^2)*m)/(2*(m+2))                                      **
+λ = (tinit/t0)^(1/(m+2)) 
+```
+
+Here ```Q``` is the total mass of the solution ```gamma``` is the gamma function and
+```tinit``` is the initial time of the solution.
+
 ## Developing
 
 Developing locally requires Docker for Windows. Run the command
