@@ -78,6 +78,6 @@ The program takes the file [variables.data](./variables.data) as input to the si
 ./bin/1dpme.exe
 ```
 
-The program outputs the mesh and solution over time into the file ```solution.out```.
+The program outputs the mesh and solution over time into the files ```mesh.out``` and ```solution.out``` respectively. The timeline for the solution is written to the file ```time.out```.
 
 [1]: http://www.reading.ac.uk/nmsruntime/saveasdialog.aspx?lID=24080&sID=90294

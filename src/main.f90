@@ -78,9 +78,12 @@ program pme
   writesol=.false.                     
 
   ! Open the solution output file.
-  open(unit=20,file='solution.out')
-  write(20,G) u(:), total_t
-  write(20,G) x(:), total_t
+  open(unit=20,file='time.out')
+  open(unit=30,file='mesh.out')
+  open(unit=40,file='solution.out')
+  write(20,G) total_t
+  write(30,G) x(:)
+  write(40,G) u(:)
 
   ! Write time-stepping banner
   write(6,*)
@@ -89,7 +92,6 @@ program pme
   write(6,*) '---------------------------------------------------------------------'
   write(6,*) '         Time                Time-step                               '
   write(6,*) '---------------------------------------------------------------------'
-
 
   do while (total_t<output_t)                                 
 
@@ -118,13 +120,16 @@ program pme
      call mass_u_calc(u,x,nodes,theta) 
 
      if (writesol) then
-        write(20,G) u(:), total_t
-        write(20,G) x(:), total_t 
+        write(20,G) total_t
+        write(30,G) x(:)
+        write(40,G) u(:)
         writesol=.false.
      endif
   end do
 
   close(20)
+  close(30)
+  close(40)
 
   ! Stop the timing
   call system_clock(System_Time_Stop)
