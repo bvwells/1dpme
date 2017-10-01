@@ -30,6 +30,16 @@ lambda = (t/t0)^(1/(m+2))
 
 Here ```Q``` is the total mass of the solution ```gamma``` is the gamma function.
 
+## Numerical Solution
+
+The one-dimensional Porous Medium Equation is solved using a moving mesh 
+method which uses the monitor function ```M=u(x,t)``` in the moving mesh 
+equations for the mesh velocity. The mesh is advanced forwards in time 
+using a forward Euler time-stepping scheme. The solution to the PME 
+is obtained as a reconstruction step by considering conservation of
+the monitor function. All the moving mesh equations are solved using
+linear finite elements.
+
 ## Developing
 
 Developing locally requires Docker for Windows. Run the command
