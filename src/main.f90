@@ -157,7 +157,7 @@ subroutine initial_conditions(u, x, nodes, m, Q, t_init)
    !**  equation on. The solution is initialised to the self-similar solution      **
    !**  given by:                                                                  **
    !**                                                                             **
-   !**       u(x,t) = (1/lambda)*(1-(x/(rzero*lambda))^2)^(1/m)                      **
+   !**       u(x,t) = (1/lambda)*(1-(x/(rzero*lambda))^2)^(1/m)                    **
    !**                                                                             **
    !**  where                                                                      **
    !**                                                                             **
