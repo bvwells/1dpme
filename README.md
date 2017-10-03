@@ -64,6 +64,12 @@ Within the running image generate the make files by running the command:
 cmake .
 ```
 
+To build the debug version of the code run the command:
+
+```
+cmake -DCMAKE_BUILD_TYPE=Debug
+```
+
 Build the executable by running the command:
 
 ```
