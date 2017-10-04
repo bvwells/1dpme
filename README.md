@@ -23,9 +23,9 @@ u(r,t) = (1/lambda^d)*(1-(r/(r0*lambda))^2)^(1/m)
 where
 
 ```
-r0^d = Q*gamma(1/m + 1/d + 1)/(gamma(d/2)*gamma(1/m + 1))                   
-t0 = ((r0^2)*m)/(2*(d*m+2))                            
-lambda = (t/t0)^(1/(d*m+2)) 
+r0^d = Q*gamma(1/m + 1/d + 1)/(gamma(d/2)*gamma(1/m + 1))
+t0 = ((r0^2)*m)/(2*(d*m+2))
+lambda = (t/t0)^(1/(d*m+2))
 ```
 
 Here ```Q``` is the total mass of the solution ```gamma``` is the gamma function and ```d``` is the dimension of the problem.
@@ -85,5 +85,12 @@ The program takes the file [variables.data](./variables.data) as input to the si
 ```
 
 The program outputs the mesh and solution over time into the files ```mesh.out``` and ```solution.out``` respectively. The timeline for the solution is written to the file ```time.out```.
+
+The program outputs the mesh and solution over time into the files ```solution.m```. The variables for the solution are written to the file ```variables.m```.
+
+## Plotting Solution
+
+The output from the simulation can be plotted in [Octave](https://www.gnu.org/software/octave/) by running the plotting file
+```plot_solution.m``` in the root of the repo.
 
 [1]: http://www.reading.ac.uk/nmsruntime/saveasdialog.aspx?lID=24080&sID=90294
