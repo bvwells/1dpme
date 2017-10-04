@@ -32,6 +32,8 @@
 *.app
 
 *~
+*.m
+!plot_solution.m
 
 # CMake
 CMakeCache.txt

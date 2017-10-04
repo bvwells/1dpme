@@ -23,9 +23,9 @@ program pme
    !*********************************************************************************
    implicit none
    !---------------------------------------------------------------------------------
-   integer :: nodes, i, reports
+   integer :: nodes, i, reports, reportid
    double precision, dimension(:), allocatable :: u, x, theta, x_dot
-   double precision :: output_t, delta_t, total_t, t_init
+   double precision :: output_t, delta_t, total_t, t_init, rzero, tzero
    double precision :: report_step, report_time
    double precision :: Q, m
 
@@ -66,7 +66,7 @@ program pme
    u = 0.0d0; x = 0.0d0; x_dot = 0.0d0; theta = 0.0d0
 
    ! Setup the initial conditions for the simulation
-   call initial_conditions(u, x, nodes, m, Q, t_init)
+   call initial_conditions(u, x, nodes, m, Q, t_init, rzero, tzero)
 
    ! Calculate the theta vector when mesh not equidistributed
    call theta_setup(theta, nodes, x, u)
@@ -77,13 +77,12 @@ program pme
    report_time = t_init + report_step
    writesol = .false.
 
-   ! Open the solution output file.
-   open (unit=20, file='time.out')
-   open (unit=30, file='mesh.out')
-   open (unit=40, file='solution.out')
-   write (20, G) total_t
-   write (30, G) x(:)
-   write (40, G) u(:)
+   reportid = 0; 
+   call write_solution(u, x, nodes, reportid) 
+   reportid = reportid + 1
+
+   ! write the solution variables to file
+   call write_variables(m, rzero, tzero, t_init, output_t, reports)
 
    ! Write time-stepping banner
    write (6, *)
@@ -120,16 +119,11 @@ program pme
       call mass_u_calc(u, x, nodes, theta)
 
       if (writesol) then
-         write (20, G) total_t
-         write (30, G) x(:)
-         write (40, G) u(:)
+         call write_solution(u, x, nodes, reportid) 
+         reportid = reportid + 1
          writesol = .false.
       endif
    end do
-
-   close (20)
-   close (30)
-   close (40)
 
    ! Stop the timing
    call system_clock(System_Time_Stop)
@@ -148,7 +142,7 @@ program pme
 
 end program pme
 
-subroutine initial_conditions(u, x, nodes, m, Q, t_init)
+subroutine initial_conditions(u, x, nodes, m, Q, t_init, rzero, tzero)
 
    use special_functions
    !*********************************************************************************
@@ -171,8 +165,9 @@ subroutine initial_conditions(u, x, nodes, m, Q, t_init)
    integer, intent(IN) :: nodes
    double precision, intent(INOUT), dimension(0:nodes) :: u, x
    double precision, intent(IN) :: Q, t_init, m
+   double precision, intent(INOUT) :: rzero, tzero
    !---------------------------------------------------------------------------------
-   double precision :: rzero, tzero, gamman, gammad, pi, lambda, delta_x, r
+   double precision :: gamman, gammad, pi, lambda, delta_x, r
    double precision :: one_over_m, one_over_lambda
    integer :: i
    !---------------------------------------------------------------------------------
@@ -385,3 +380,57 @@ subroutine adaptive_timestep(u, x, m, delta_t, t, nodes)
    return
 
 end subroutine adaptive_timestep
+
+subroutine write_solution(u, x, nodes, reportid) 
+
+   implicit none
+!------------------------------------------------------------------------------
+   integer, intent(IN) :: nodes, reportid
+   double precision, intent(IN), dimension(0:nodes) :: u, x
+!------------------------------------------------------------------------------
+   character(LEN=10) :: numbers
+   integer :: test_number, hundreds, tens, units
+   integer :: i
+   character(LEN=32) :: filename
+!------------------------------------------------------------------------------
+   numbers = "0123456789"; filename = "solution"
+
+   test_number = reportid
+   hundreds = test_number/100
+   test_number = test_number - 100*hundreds
+   tens = test_number/10
+   test_number = test_number - 10*tens
+   units = test_number
+
+   open (unit=10, file=trim(filename)//numbers(hundreds + 1:hundreds + 1)//numbers(tens + 1:tens + 1)// &
+      &numbers(units + 1:units + 1)//".m")
+   do i = 0, nodes
+      write (10, *) x(i), u(i)
+   end do
+   close (10)
+
+   return
+
+end subroutine write_solution
+
+subroutine write_variables(mpower, rzero, tzero, t_init, output_t, reports)
+
+   implicit none
+!------------------------------------------------------------------------------
+   double precision, intent(IN) :: mpower, rzero, tzero, t_init, output_t
+   integer, intent(IN) :: reports
+!------------------------------------------------------------------------------
+
+   ! write the solution variables to file
+   open (unit=10, file='variables.m')
+   write (10, *) mpower
+   write (10, *) rzero
+   write (10, *) tzero
+   write (10, *) t_init
+   write (10, *) output_t
+   write (10, *) reports
+   close (10)
+
+   return
+
+end subroutine write_variables
