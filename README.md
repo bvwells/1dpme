@@ -84,9 +84,7 @@ The program takes the file [variables.data](./variables.data) as input to the si
 ./bin/1dpme.exe
 ```
 
-The program outputs the mesh and solution over time into the files ```mesh.out``` and ```solution.out``` respectively. The timeline for the solution is written to the file ```time.out```.
-
-The program outputs the mesh and solution over time into the files ```solution.m```. The variables for the solution are written to the file ```variables.m```.
+The program outputs the mesh and solution over time into the files ```solutionXXX.m```. The variables for the solution are written to the file ```variables.m```.
 
 ## Plotting Solution
 
