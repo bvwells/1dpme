@@ -78,7 +78,7 @@ program pme
    writesol = .false.
 
    reportid = 0; 
-   call write_solution(u, x, nodes, reportid) 
+   call write_solution(u, x, nodes, reportid)
    reportid = reportid + 1
 
    ! write the solution variables to file
@@ -119,7 +119,7 @@ program pme
       call mass_u_calc(u, x, nodes, theta)
 
       if (writesol) then
-         call write_solution(u, x, nodes, reportid) 
+         call write_solution(u, x, nodes, reportid)
          reportid = reportid + 1
          writesol = .false.
       endif
@@ -241,30 +241,32 @@ subroutine mass_mesh_velocity(u, x, x_dot, nodes, delta_t, m)
    double precision, intent(INOUT), dimension(0:nodes) :: u, x, x_dot
    double precision, intent(IN) :: delta_t, m
    !---------------------------------------------------------------------------------
-   double precision, dimension(0:nodes, 0:nodes) :: K
+   double precision, dimension(0:nodes) :: upper, diag, lower
    double precision, dimension(0:nodes) :: psi, E
    integer :: i
    !--------------------------------------------------------------------------------
-   x_dot = 0.0d0; K = 0.0d0; E = 0.0d0; psi = 0.0d0; 
+   x_dot = 0.0d0; lower = 0.0d0; diag = 0.0d0; upper = 0.0; E = 0.0d0; psi = 0.0d0; 
    ! setup stiffness matrix and load vector
-   K(0, 0) = -0.5d0*((u(1) + u(0))/(x(1) - x(0)))
-   K(1, 0) = 0.5d0*((u(1) + u(0))/(x(1) - x(0)))
+   diag(0) = -0.5d0*((u(1) + u(0))/(x(1) - x(0)))
+   upper(0) = 0.5d0*((u(1) + u(0))/(x(1) - x(0)))
+
    E(0) = -(1.0d0/(m + 1.0d0))*(1.0d0/(x(1) - x(0)))*(u(1)**(m + 1) - u(0)**(m + 1))
 
    do i = 1, nodes - 1
-      K(i - 1, i) = 0.5d0*((u(i) + u(i - 1))/(x(i) - x(i - 1)))
-      K(i, i) = -0.5d0*((u(i) + u(i - 1))/(x(i) - x(i - 1))) - 0.5d0*((u(i + 1) + u(i))/(x(i + 1) - x(i)))
-      K(i + 1, i) = 0.5d0*((u(i + 1) + u(i))/(x(i + 1) - x(i)))
+      lower(i) = 0.5d0*((u(i) + u(i - 1))/(x(i) - x(i - 1)))
+      diag(i) = -0.5d0*((u(i) + u(i - 1))/(x(i) - x(i - 1))) - 0.5d0*((u(i + 1) + u(i))/(x(i + 1) - x(i)))
+      upper(i) = 0.5d0*((u(i + 1) + u(i))/(x(i + 1) - x(i)))
+
       E(i) = (1.0d0/(m + 1.0d0))*(1.0d0/(x(i) - x(i - 1)))*(u(i)**(m + 1) - u(i - 1)**(m + 1)) -&
            & (1.0d0/(m + 1.0d0))*(1.0d0/(x(i + 1) - x(i)))*(u(i + 1)**(m + 1) - u(i)**(m + 1))
    end do
 
-   K(nodes - 1, nodes) = 0.5d0*((u(nodes) + u(nodes - 1))/(x(nodes) - x(nodes - 1)))
-   K(nodes, nodes) = -0.5d0*((u(nodes) + u(nodes - 1))/(x(nodes) - x(nodes - 1)))
+   lower(nodes) = 0.5d0*((u(nodes) + u(nodes - 1))/(x(nodes) - x(nodes - 1)))
+   diag(nodes) = -0.5d0*((u(nodes) + u(nodes - 1))/(x(nodes) - x(nodes - 1)))
    E(nodes) = (1.0d0/(m + 1.0d0))*(1.0d0/(x(nodes) - x(nodes - 1)))*(u(nodes)**(m + 1) - u(nodes - 1)**(m + 1))
 
    ! Solve stiffess system for \Psi imposing dirichlet boundary conditions strongly (\Psi=0).
-   call gaussian_elimination(K(1:nodes - 1, 1:nodes - 1), psi(1:nodes - 1), E(1:nodes - 1), nodes - 1)
+   call tridiagonal(upper(1:nodes - 1), diag(1:nodes - 1), lower(1:nodes - 1), psi(1:nodes - 1), E(1:nodes - 1), nodes - 1)
    psi(0) = 0.0d0; psi(nodes) = 0.0d0
 
    ! Recover the mesh velocity from psi
@@ -286,30 +288,31 @@ subroutine velocity_recovery(x, x_dot, psi, nodes)
    double precision, intent(INOUT), dimension(0:nodes) :: x_dot
    double precision, intent(IN), dimension(0:nodes) :: x, psi
    !---------------------------------------------------------------------------------
-   double precision, dimension(0:nodes, 0:nodes) :: Mass
+   double precision, dimension(0:nodes) :: upper, diag, lower
    double precision, dimension(0:nodes) :: f
    integer :: i
    !--------------------------------------------------------------------------------
-   Mass = 0.0d0; f = 0.0d0; x_dot = 0.0d0
+   lower = 0.0d0; diag = 0.0d0; upper = 0.0; f = 0.0d0; x_dot = 0.0d0
 
    ! setup mass matrix and load vector for recovery of mesh velocity
-   Mass(0, 0) = (1.0d0/3.0d0)*(x(1) - x(0))
-   Mass(1, 0) = (1.0d0/6.0d0)*(x(1) - x(0))
+   diag(0) = (1.0d0/3.0d0)*(x(1) - x(0))
+   upper(0) = (1.0d0/6.0d0)*(x(1) - x(0))
    f(0) = 0.5d0*(psi(1) - psi(0))
 
    do i = 1, nodes - 1
-      Mass(i - 1, i) = (1.0d0/6.0d0)*(x(i) - x(i - 1))
-      Mass(i, i) = (1.0d0/3.0d0)*(x(i + 1) - x(i - 1))
-      Mass(i + 1, i) = (1.0d0/6.0d0)*(x(i + 1) - x(i))
+      lower(i) = (1.0d0/6.0d0)*(x(i) - x(i - 1))
+      diag(i) = (1.0d0/3.0d0)*(x(i + 1) - x(i - 1))
+      upper(i) = (1.0d0/6.0d0)*(x(i + 1) - x(i))
+
       f(i) = 0.5d0*(psi(i + 1) - psi(i - 1))
    end do
 
-   Mass(nodes - 1, nodes) = (1.0d0/6.0d0)*(x(nodes) - x(nodes - 1))
-   Mass(nodes, nodes) = (1.0d0/3.0d0)*(x(nodes) - x(nodes - 1))
+   lower(nodes) = (1.0d0/6.0d0)*(x(nodes) - x(nodes - 1))
+   diag(nodes) = (1.0d0/3.0d0)*(x(nodes) - x(nodes - 1))
    f(nodes) = 0.5d0*(psi(nodes) - psi(nodes - 1))
 
    ! Solve for mesh velocity
-   call gaussian_elimination(Mass, x_dot, f, nodes + 1)
+   call tridiagonal(upper, diag, lower, x_dot, f, nodes + 1)
 
    return
 
@@ -331,25 +334,26 @@ subroutine mass_u_calc(u, x, nodes, theta)
    double precision, intent(IN), dimension(0:nodes) :: x, theta
    !---------------------------------------------------------------------------------
    double precision, dimension(0:nodes, 0:nodes) :: M
+   double precision, dimension(0:nodes) :: upper, diag, lower
    integer :: i
    !---------------------------------------------------------------------------------
-   u = 0.0d0; M = 0.0d0
+   lower = 0.0d0; diag = 0.0d0; upper = 0.0; u = 0.0d0; M = 0.0d0
 
    ! Setup mass matrix system to recover solution using mass monitor
-   M(0, 0) = (1.0d0/3.0d0)*(x(1) - x(0))
-   M(1, 0) = (1.0d0/6.0d0)*(x(1) - x(0))
+   diag(0) = (1.0d0/3.0d0)*(x(1) - x(0))
+   upper(0) = (1.0d0/3.0d0)*(x(1) - x(0))
 
    do i = 1, nodes - 1
-      M(i - 1, i) = (1.0d0/6.0d0)*(x(i) - x(i - 1))
-      M(i, i) = (1.0d0/3.0d0)*(x(i + 1) - x(i - 1))
-      M(i + 1, i) = (1.0d0/6.0d0)*(x(i + 1) - x(i))
+      lower(i) = (1.0d0/6.0d0)*(x(i) - x(i - 1))
+      diag(i) = (1.0d0/3.0d0)*(x(i + 1) - x(i - 1))
+      upper(i) = (1.0d0/6.0d0)*(x(i + 1) - x(i))
    end do
 
-   M(nodes - 1, nodes) = (1.0d0/6.0d0)*(x(nodes) - x(nodes - 1))
-   M(nodes, nodes) = (1.0d0/3.0d0)*(x(nodes) - x(nodes - 1))
+   lower(nodes) = (1.0d0/6.0d0)*(x(nodes) - x(nodes - 1))
+   diag(nodes) = (1.0d0/3.0d0)*(x(nodes) - x(nodes - 1))
 
    ! Solve for solution u
-   call gaussian_elimination(M(1:nodes - 1, 1:nodes - 1), u(1:nodes - 1), theta(1:nodes - 1), nodes - 1)
+   call tridiagonal(upper(1:nodes - 1), diag(1:nodes - 1), lower(1:nodes - 1), u(1:nodes - 1), theta(1:nodes - 1), nodes - 1)
    u(0) = 0; u(nodes) = 0
 
    return
@@ -381,7 +385,7 @@ subroutine adaptive_timestep(u, x, m, delta_t, t, nodes)
 
 end subroutine adaptive_timestep
 
-subroutine write_solution(u, x, nodes, reportid) 
+subroutine write_solution(u, x, nodes, reportid)
 
    implicit none
 !------------------------------------------------------------------------------

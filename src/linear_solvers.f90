@@ -28,24 +28,23 @@ contains
 
       if (dabs(diag(1)) < 1d-10) stop 'Rewrite equations: trisolve'
 
-      beta = diag(1)
-      x(1) = b(1)/beta
+      gamma(1) = upper(1)/diag(1)
+      x(1) = b(1)/diag(1)
 
       ! Forward substitution
 
-      do i = 1, n
-         gamma(i) = upper(i - 1)/beta
-         beta = diag(i) - lower(i)*gamma(i)
+      do i = 2, n
+         beta = diag(i) - gamma(i - 1)*lower(i)
 
          if (dabs(beta) < 1d-10) stop 'trisolve failed'
 
-         x(i) = (b(i) - lower(i)*x(i - 1))/beta
+         gamma(i) = upper(i)/beta
+         x(i) = (b(i) - x(i - 1)*lower(i))/beta
       end do
 
       ! Backward substitution
-
       do i = n - 1, 1, -1
-         x(i) = x(i) - gamma(i + 1)*x(i + 1)
+         x(i) = x(i) - gamma(i)*x(i + 1)
       end do
 
       return
