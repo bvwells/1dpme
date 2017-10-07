@@ -1,6 +1,6 @@
-        10              Number of nodes in discretisation.
-        1d0             Output time for simulation.
-        1.0d0           Exponent in PME equation (m).
+        100              Number of nodes in discretisation.
+        10d0             Output time for simulation.
+        4.0d0           Exponent in PME equation (m).
         1.0d0           Total mass of initial solution (Q)
-        0.01d0          Initial time for the simulation.
+        0.001d0         Initial time for the simulation.
         10              Nunmber of report times for the simulation.
