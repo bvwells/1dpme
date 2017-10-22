@@ -23,7 +23,7 @@ program pme
    !*********************************************************************************
    implicit none
    !---------------------------------------------------------------------------------
-   integer :: nodes, i, reports, reportid
+   integer :: nodes, reports, reportid
    double precision, dimension(:), allocatable :: u, x, theta, x_dot
    double precision :: output_t, delta_t, total_t, t_init, rzero, tzero
    double precision :: report_step, report_time
@@ -177,8 +177,8 @@ subroutine initial_conditions(u, x, nodes, m, Q, t_init, rzero, tzero)
    one_over_m = 1.0d0/m
 
    ! Calculate quantities for self-similar solution.
-   gamman = gamma(one_over_m + (3.0d0/2.0d0))
-   gammad = gamma(one_over_m + 1.0d0)
+   gamman = GammaFunction(one_over_m + (3.0d0/2.0d0))
+   gammad = GammaFunction(one_over_m + 1.0d0)
 
    rzero = Q*gamman/(SQRT(pi)*gammad)
    tzero = ((rzero**2)*m)/(2.0d0*(m + 2.0d0))

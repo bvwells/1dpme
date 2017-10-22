@@ -2,7 +2,7 @@ module special_functions
 
 contains
 
-   double precision function gamma(xx)
+   double precision function GammaFunction(xx)
       !*********************************************************************************
       !**                                                                             **
       !**  This function calculates the gamma funtion for the value xx.               **
@@ -36,11 +36,11 @@ contains
          ser = ser + cof(j)/y
       end do
 
-      gamma = tmp + dlog(stp*ser/x)
-      gamma = dexp(gamma)
+      GammaFunction = tmp + dlog(stp*ser/x)
+      GammaFunction = dexp(GammaFunction)
 
       return
 
-   end function gamma
+   end function GammaFunction
 
 end module special_functions
